@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>东南大学绩点计算器（简易版）</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h2 {
+            color: #4caf50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px; /* Added margin for spacing */
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        textarea {
+            width: calc(100% - 24px);
+            margin-top: 10px;
+            padding: 12px;
+            resize: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px;
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .file-input-label:hover {
+            background-color: #45a049;
+        }
+
+        #result, #average {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>东南大学绩点计算器（简易版）</h2>
+
+    <table id="courseTable">
+        <thead>
+            <tr>
+                <th>课程名称</th>
+                <th>分数</th>
+                <th>学分</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Course rows will be added dynamically here -->
+        </tbody>
+    </table>
+
+    <button onclick="addCourse()">添加课程</button>
+    <button onclick="calculateGPA()">计算绩点</button>
+
+    <h2 id="result">绩点：--</h2>
+    <h2 id="average">均分：--</h2>
+
+    <textarea id="importExport" placeholder="粘贴或导入课程信息"></textarea>
+    <label for="fileInput" class="file-input-label">导入课程</label>
+    <input type="file" id="fileInput" accept=".json" onchange="importCourses(event)">
+
+    <button onclick="exportCourses()">导出课程</button>
+
+    <script>
+        function addCourse() {
+            var table = document.getElementById("courseTable").getElementsByTagName('tbody')[0];
+            var row = table.insertRow(table.rows.length);
+
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+            var cell4 = row.insertCell(3);
+
+            cell1.innerHTML = '<input type="text" placeholder="课程名称">';
+            cell2.innerHTML = '<input type="number" placeholder="分数" min="0" max="100">';
+            cell3.innerHTML = '<input type="number" placeholder="学分" min="0">';
+            cell4.innerHTML = '<button onclick="removeCourse(this)">删除</button>';
+        }
+
+        function removeCourse(button) {
+            var row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function calculateGPA() {
+            var table = document.getElementById("courseTable").getElementsByTagName('tbody')[0];
+            var rows = table.getElementsByTagName('tr');
+            var totalPoints = 0;
+            var totalCredits = 0;
+
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td');
+                var score = parseFloat(cells[1].getElementsByTagName('input')[0].value);
+                var credits = parseFloat(cells[2].getElementsByTagName('input')[0].value);
+
+                if (!isNaN(score) && !isNaN(credits)) {
+                    totalPoints += calculatePoints(score) * credits;
+                    totalCredits += credits;
+                }
+            }
+
+            var gpa = totalCredits !== 0 ? totalPoints / totalCredits : 0;
+            var average = calculateAverage(rows);
+
+            document.getElementById("result").innerHTML = "绩点：" + gpa.toFixed(2);
+            document.getElementById("average").innerHTML = "均分：" + average.toFixed(2);
+        }
+
+        function calculatePoints(score) {
+            if (score >= 96) {
+                return 4.8;
+            } else if (score >= 93) {
+                return 4.5;
+            } else if (score >= 90) {
+                return 4.0;
+            } else if (score >= 86) {
+                return 3.8;
+            } else if (score >= 83) {
+                return 3.5;
+            } else if (score >= 80) {
+                return 3.0;
+            } else if (score >= 76) {
+                return 2.8;
+            } else if (score >= 73) {
+                return 2.5;
+            } else if (score >= 70) {
+                return 2.0;
+            } else if (score >= 66) {
+                return 1.8;
+            } else if (score >= 63) {
+                return 1.5;
+            } else if (score >= 60) {
+                return 1.0;
+            } else {
+                return 0;
+            }
+        }
+
+        function calculateAverage(rows) {
+            var totalScore = 0;
+            var totalCredits = 0;
+
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td');
+                var score = parseFloat(cells[1].getElementsByTagName('input')[0].value);
+                var credits = parseFloat(cells[2].getElementsByTagName('input')[0].value);
+
+                if (!isNaN(score) && !isNaN(credits)) {
+                    totalScore += score * credits;
+                    totalCredits += credits;
+                }
+            }
+
+            var average = totalCredits !== 0 ? totalScore / totalCredits : 0;
+            return average;
+        }
+
+        function importCourses(event) {
+            var fileInput = event.target;
+            var file = fileInput.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var courseData = e.target.result;
+                    try {
+                        var parsedData = JSON.parse(courseData);
+                        if (Array.isArray(parsedData)) {
+                            clearTable();
+                            for (var i = 0; i < parsedData.length; i++) {
+                                addImportedCourse(parsedData[i]);
+                            }
+                        } else {
+                            alert("导入的数据格式不正确");
+                        }
+                    } catch (error) {
+                        alert("导入的数据格式不正确");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function addImportedCourse(course) {
+            var table = document.getElementById("courseTable").getElementsByTagName('tbody')[0];
+            var row = table.insertRow(table.rows.length);
+
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+            var cell4 = row.insertCell(3);
+
+            cell1.innerHTML = '<input type="text" value="' + (course.name || "") + '">';
+            cell2.innerHTML = '<input type="number" value="' + (course.score || "") + '" min="0" max="100">';
+            cell3.innerHTML = '<input type="number" value="' + (course.credits || "") + '" min="0">';
+            cell4.innerHTML = '<button onclick="removeCourse(this)">删除</button>';
+        }
+
+        function exportCourses() {
+            var table = document.getElementById("courseTable").getElementsByTagName('tbody')[0];
+            var rows = table.getElementsByTagName('tr');
+            var exportData = [];
+
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td');
+                var course = {
+                    name: cells[0].getElementsByTagName('input')[0].value,
+                    score: cells[1].getElementsByTagName('input')[0].value,
+                    credits: cells[2].getElementsByTagName('input')[0].value,
+                };
+                exportData.push(course);
+            }
+
+            download(JSON.stringify(exportData, null, 2), 'courses.json', 'application/json');
+        }
+
+        function clearTable() {
+            var table = document.getElementById("courseTable").getElementsByTagName('tbody')[0];
+            table.innerHTML = "";
+        }
+
+        function download(content, fileName, contentType) {
+            var a = document.createElement("a");
+            var file = new Blob([content], { type: contentType });
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+        }
+    </script>
+
+</body>
+</html>
