@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>东南大学绩点计算器（简易版）</title>
+    <title>绩点计算器</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         h2 {
@@ -29,7 +29,8 @@
             margin-top: 20px;
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            overflow: auto; /* Enable vertical scrolling */
+            max-height: 70vh; /* Set a max height */
         }
 
         th, td {
@@ -50,7 +51,7 @@
             border: none;
             cursor: pointer;
             display: inline-block;
-            margin: 10px; /* Added margin for spacing */
+            margin: 10px;
         }
 
         button:hover {
@@ -100,8 +101,9 @@
     </style>
 </head>
 <body>
-        <img src="头秃.png" alt="东大计软智常用网址" width="75px" class="header-image">
-    <h2>东南大学绩点计算器（简易版）</h2>
+    <img src="头秃.png" alt="东大计软智常用网址" width="75px" class="header-image">
+    <h2>东南大学绩点计算器V0.11</h2>
+    <!-- <h2>绩点计算器</h2> -->
 
     <table id="courseTable">
         <thead>
@@ -124,7 +126,7 @@
     <h2 id="average">均分：--</h2>
 
     <textarea id="importExport" placeholder="粘贴或导入课程信息"></textarea>
-    <label for="fileInput" class="file-input-label">导入课程</label>
+    <label for="fileInput" class="file-input-label">选择文件</label>
     <input type="file" id="fileInput" accept=".json" onchange="importCourses(event)">
 
     <button onclick="exportCourses()">导出课程</button>
