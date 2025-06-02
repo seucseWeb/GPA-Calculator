@@ -425,12 +425,6 @@
                 96-100: 4.8 | 93-95: 4.5 | 90-92: 4.0 | 86-89: 3.8 | 83-85: 3.5 | 80-82: 3.0 | 76-79: 2.8 | 73-75: 2.5 | 70-72: 2.0 | 66-69: 1.8 | 63-65: 1.5 | 60-62: 1.0 | <60: 0
             </div>
 
-            <div class="controls">
-                <button class="btn btn-primary" onclick="addCourse()">➕ 添加课程</button>
-                <button class="btn btn-secondary" onclick="calculateGPA()">🧮 计算绩点</button>
-                <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清空所有</button>
-            </div>
-
             <div class="table-container">
                 <table id="courseTable">
                     <thead>
@@ -446,6 +440,12 @@
                         <!-- Course rows will be added dynamically here -->
                     </tbody>
                 </table>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="addCourse()">➕ 添加课程</button>
+                <button class="btn btn-secondary" onclick="calculateGPA()">🧮 计算绩点</button>
+                <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清空所有</button>
             </div>
 
             <div id="emptyState" class="empty-state">
