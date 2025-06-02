@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>东南大学绩点计算器 Pro</title>
+    <title>绩点计算器 Pro</title>
     <style>
         * {
             margin: 0;
@@ -415,14 +415,46 @@
     <div class="container">
         <div class="header">
             <div class="logo">🎓</div>
-            <h1>东南大学绩点计算器</h1>
+            <h1>绩点计算器</h1>
             <p class="subtitle">专业、准确、便捷的GPA计算工具</p>
         </div>
 
         <div class="card">
-            <div class="grade-hint">
-                <strong>绩点换算标准：</strong>
-                96-100: 4.8 | 93-95: 4.5 | 90-92: 4.0 | 86-89: 3.8 | 83-85: 3.5 | 80-82: 3.0 | 76-79: 2.8 | 73-75: 2.5 | 70-72: 2.0 | 66-69: 1.8 | 63-65: 1.5 | 60-62: 1.0 | <60: 0
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="grade-hint" style="flex: 1; margin-right: 15px; margin-bottom: 0;">
+                    <strong id="currentSchemeTitle">当前方案 - 东南大学标准：</strong>
+                    <span id="currentSchemeDisplay">96-100: 4.8 | 93-95: 4.5 | 90-92: 4.0 | 86-89: 3.8 | 83-85: 3.5 | 80-82: 3.0 | 76-79: 2.8 | 73-75: 2.5 | 70-72: 2.0 | 66-69: 1.8 | 63-65: 1.5 | 60-62: 1.0 | <60: 0</span>
+                </div>
+                <button class="btn btn-secondary" onclick="toggleSchemeEditor()" style="white-space: nowrap;">⚙️ 自定义方案</button>
+            </div>
+
+            <div id="schemeEditor" class="card" style="display: none; background: #f8f9fa; border: 2px dashed #ddd; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 20px; color: #4CAF50;">⚙️ 绩点方案编辑器</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">方案名称：</label>
+                    <input type="text" id="schemeName" class="input-field" placeholder="例如：清华大学、北京大学等" style="max-width: 300px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">绩点规则（每行一个，格式：最低分数-最高分数: 绩点）：</label>
+                    <textarea id="schemeRules" class="textarea" placeholder="示例格式：&#10;96-100: 4.8&#10;93-95: 4.5&#10;90-92: 4.0&#10;86-89: 3.8&#10;83-85: 3.5&#10;80-82: 3.0&#10;76-79: 2.8&#10;73-75: 2.5&#10;70-72: 2.0&#10;66-69: 1.8&#10;63-65: 1.5&#10;60-62: 1.0&#10;0-59: 0" style="min-height: 200px; font-family: monospace;"></textarea>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="saveCustomScheme()">💾 保存方案</button>
+                    <button class="btn btn-secondary" onclick="loadPresetScheme('seu')">🔄 东南大学</button>
+                    <button class="btn btn-secondary" onclick="loadPresetScheme('nku')">🔄 南开大学</button>
+                    <button class="btn btn-secondary" onclick="exportScheme()">📤 导出方案</button>
+                    <button class="btn btn-secondary" onclick="importScheme()">📥 导入方案</button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #666; margin-bottom: 10px;">已保存的方案：</h4>
+                    <div id="savedSchemes" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <!-- 保存的方案会显示在这里 -->
+                    </div>
+                </div>
             </div>
 
             <div class="table-container">
@@ -505,6 +537,274 @@
 
     <script>
         let courses = [];
+        let currentScheme = {
+            name: "东南大学标准",
+            rules: [
+                {min: 96, max: 100, gpa: 4.8},
+                {min: 93, max: 96, gpa: 4.5},
+                {min: 90, max: 93, gpa: 4.0},
+                {min: 86, max: 90, gpa: 3.8},
+                {min: 83, max: 86, gpa: 3.5},
+                {min: 80, max: 83, gpa: 3.0},
+                {min: 76, max: 80, gpa: 2.8},
+                {min: 73, max: 76, gpa: 2.5},
+                {min: 70, max: 73, gpa: 2.0},
+                {min: 66, max: 70, gpa: 1.8},
+                {min: 63, max: 66, gpa: 1.5},
+                {min: 60, max: 63, gpa: 1.0},
+                {min: 0, max: 60, gpa: 0}
+            ]
+        };
+
+        // 预设方案
+        const presetSchemes = {
+            seu: {
+                name: "东南大学标准",
+                rules: [
+                {min: 96, max: 100, gpa: 4.8},
+                {min: 93, max: 96, gpa: 4.5},
+                {min: 90, max: 93, gpa: 4.0},
+                {min: 86, max: 90, gpa: 3.8},
+                {min: 83, max: 86, gpa: 3.5},
+                {min: 80, max: 83, gpa: 3.0},
+                {min: 76, max: 80, gpa: 2.8},
+                {min: 73, max: 76, gpa: 2.5},
+                {min: 70, max: 73, gpa: 2.0},
+                {min: 66, max: 70, gpa: 1.8},
+                {min: 63, max: 66, gpa: 1.5},
+                {min: 60, max: 63, gpa: 1.0},
+                {min: 0, max: 60, gpa: 0}
+                ]
+            },
+            nku: {
+                name: "南开大学标准",
+                rules: [
+                    {min: 90, max: 100, gpa: 4.0},
+                    {min: 85, max: 90, gpa: 3.7},
+                    {min: 81, max: 85, gpa: 3.3},
+                    {min: 78, max: 81, gpa: 3.0},
+                    {min: 75, max: 78, gpa: 2.7},
+                    {min: 72, max: 75, gpa: 2.3},
+                    {min: 69, max: 72, gpa: 2.0},
+                    {min: 66, max: 69, gpa: 1.7},
+                    {min: 63, max: 66, gpa: 1.3},
+                    {min: 60, max: 63, gpa: 1.0},
+                    {min: 0, max: 60, gpa: 0}
+                ]
+            },
+            pku: {
+                name: "北京大学标准",
+                rules: [
+                    {min: 90, max: 100, gpa: 4.0},
+                    {min: 85, max: 89, gpa: 3.7},
+                    {min: 82, max: 84, gpa: 3.3},
+                    {min: 78, max: 81, gpa: 3.0},
+                    {min: 75, max: 77, gpa: 2.7},
+                    {min: 72, max: 74, gpa: 2.3},
+                    {min: 68, max: 71, gpa: 2.0},
+                    {min: 64, max: 67, gpa: 1.5},
+                    {min: 60, max: 63, gpa: 1.0},
+                    {min: 0, max: 59, gpa: 0}
+                ]
+            }
+        };
+
+        function toggleSchemeEditor() {
+            const editor = document.getElementById('schemeEditor');
+            const isVisible = editor.style.display !== 'none';
+            editor.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                // 显示编辑器时，填入当前方案
+                document.getElementById('schemeName').value = currentScheme.name;
+                document.getElementById('schemeRules').value = formatSchemeRules(currentScheme.rules);
+                updateSavedSchemesList();
+            }
+        }
+
+        function formatSchemeRules(rules) {
+            return rules.map(rule => `${rule.min}-${rule.max}: ${rule.gpa}`).join('\n');
+        }
+
+        function parseSchemeRules(text) {
+            const lines = text.trim().split('\n');
+            const rules = [];
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                const match = line.match(/(\d+)\s*-\s*(\d+)\s*:\s*([0-9.]+)/);
+                if (match) {
+                    rules.push({
+                        min: parseInt(match[1]),
+                        max: parseInt(match[2]),
+                        gpa: parseFloat(match[3])
+                    });
+                }
+            }
+            
+            // 按分数降序排序
+            rules.sort((a, b) => b.min - a.min);
+            return rules;
+        }
+
+        function saveCustomScheme() {
+            const name = document.getElementById('schemeName').value.trim();
+            const rulesText = document.getElementById('schemeRules').value;
+            
+            if (!name) {
+                showToast('请输入方案名称', 'error');
+                return;
+            }
+            
+            if (!rulesText.trim()) {
+                showToast('请输入绩点规则', 'error');
+                return;
+            }
+            
+            try {
+                const rules = parseSchemeRules(rulesText);
+                if (rules.length === 0) {
+                    showToast('规则格式不正确', 'error');
+                    return;
+                }
+                
+                const scheme = { name, rules };
+                currentScheme = scheme;
+                
+                // 保存到内存中的已保存方案列表
+                let savedSchemes = getSavedSchemes();
+                savedSchemes[name] = scheme;
+                setSavedSchemes(savedSchemes);
+                
+                updateSchemeDisplay();
+                updateSavedSchemesList();
+                updateUI();
+                calculateGPA();
+                showToast(`方案"${name}"保存成功`);
+            } catch (error) {
+                showToast('规则解析失败', 'error');
+            }
+        }
+
+        function loadPresetScheme(schemeKey) {
+            const scheme = presetSchemes[schemeKey];
+            if (scheme) {
+                document.getElementById('schemeName').value = scheme.name;
+                document.getElementById('schemeRules').value = formatSchemeRules(scheme.rules);
+            }
+        }
+
+        function getSavedSchemes() {
+            // 由于不能使用localStorage，我们使用一个全局变量来存储
+            if (!window.savedGPASchemes) {
+                window.savedGPASchemes = {};
+            }
+            return window.savedGPASchemes;
+        }
+
+        function setSavedSchemes(schemes) {
+            window.savedGPASchemes = schemes;
+        }
+
+        function updateSavedSchemesList() {
+            const container = document.getElementById('savedSchemes');
+            const savedSchemes = getSavedSchemes();
+            
+            if (Object.keys(savedSchemes).length === 0) {
+                container.innerHTML = '<span style="color: #999;">暂无保存的方案</span>';
+                return;
+            }
+            
+            container.innerHTML = Object.keys(savedSchemes).map(name => `
+                <button class="btn" style="background: #e3f2fd; color: #1976d2; font-size: 12px; padding: 8px 12px;" 
+                        onclick="loadSavedScheme('${name}')">
+                    ${name} ${name === currentScheme.name ? '(当前)' : ''}
+                </button>
+            `).join('');
+        }
+
+        function loadSavedScheme(name) {
+            const savedSchemes = getSavedSchemes();
+            const scheme = savedSchemes[name];
+            if (scheme) {
+                currentScheme = scheme;
+                document.getElementById('schemeName').value = scheme.name;
+                document.getElementById('schemeRules').value = formatSchemeRules(scheme.rules);
+                updateSchemeDisplay();
+                updateSavedSchemesList();
+                updateUI();
+                calculateGPA();
+                showToast(`已切换到方案"${name}"`);
+            }
+        }
+
+        function updateSchemeDisplay() {
+            document.getElementById('currentSchemeTitle').textContent = `当前方案 - ${currentScheme.name}：`;
+            const display = currentScheme.rules.map(rule => 
+                `${rule.min}${rule.max === 100 && rule.min < 100 ? '+' : rule.min === rule.max ? '' : '-' + rule.max}: ${rule.gpa}`
+            ).join(' | ');
+            document.getElementById('currentSchemeDisplay').textContent = display;
+        }
+
+        function exportScheme() {
+            if (!currentScheme.name) {
+                showToast('请先保存一个方案', 'error');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(currentScheme, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gpa_scheme_${currentScheme.name}_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('方案导出成功');
+        }
+
+        function importScheme() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const scheme = JSON.parse(event.target.result);
+                        if (scheme.name && scheme.rules && Array.isArray(scheme.rules)) {
+                            currentScheme = scheme;
+                            document.getElementById('schemeName').value = scheme.name;
+                            document.getElementById('schemeRules').value = formatSchemeRules(scheme.rules);
+                            
+                            // 保存到已保存方案
+                            let savedSchemes = getSavedSchemes();
+                            savedSchemes[scheme.name] = scheme;
+                            setSavedSchemes(savedSchemes);
+                            
+                            updateSchemeDisplay();
+                            updateSavedSchemesList();
+                            updateUI();
+                            calculateGPA();
+                            showToast(`方案"${scheme.name}"导入成功`);
+                        } else {
+                            showToast('方案文件格式不正确', 'error');
+                        }
+                    } catch (error) {
+                        showToast('方案文件解析失败', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -616,19 +916,13 @@
         }
 
         function calculatePoints(score) {
-            if (score >= 96) return 4.8;
-            else if (score >= 93) return 4.5;
-            else if (score >= 90) return 4.0;
-            else if (score >= 86) return 3.8;
-            else if (score >= 83) return 3.5;
-            else if (score >= 80) return 3.0;
-            else if (score >= 76) return 2.8;
-            else if (score >= 73) return 2.5;
-            else if (score >= 70) return 2.0;
-            else if (score >= 66) return 1.8;
-            else if (score >= 63) return 1.5;
-            else if (score >= 60) return 1.0;
-            else return 0;
+            // 使用当前方案计算绩点
+            for (let rule of currentScheme.rules) {
+                if (score >= rule.min && score <= rule.max) {
+                    return rule.gpa;
+                }
+            }
+            return 0; // 默认返回0
         }
 
         function importFromText() {
@@ -728,6 +1022,7 @@
         });
 
         // 初始化
+        updateSchemeDisplay();
         updateUI();
     </script>
 </body>
